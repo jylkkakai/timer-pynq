@@ -14,4 +14,6 @@ void scutmr_set_autoload(uint32_t val);
 void scutmr_set_load(uint32_t val);
 void scutmr_set_enable(uint32_t val);
 void scutmr_set_enable_interrupt(uint32_t val);
+void scugic_dist_set_enable(uint32_t interrupt_id);
+void scugic_dist_clear_enable(uint32_t interrupt_id);
 #endif // TIMER_H_

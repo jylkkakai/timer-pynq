@@ -44,6 +44,7 @@
  *   ps7_uart    115200 (configured by bootrom/bsp)
  */
 
+#include "../../timer_bsp/ps7_cortexa9_0/include/sleep.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xil_exception.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xil_printf.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xparameters.h"
@@ -63,7 +64,8 @@ static void TimerIntrHandler(void *CallBackRef);
 
 static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId);
 
-static void TimerDisableIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId);
+// static void TimerDisableIntrSystem(XScuGic *IntcInstancePtr, u16
+// TimerIntrId);
 
 XScuGic IntcInstance; /* Interrupt Controller Instance */
 
@@ -86,9 +88,8 @@ int main(void) {
   return XST_SUCCESS;
 }
 
-int ScuTimerIntrExample(
-    XScuGic *IntcInstancePtr, /*XScuTimer *TimerInstancePtr,*/
-    u16 TimerDeviceId, u16 TimerIntrId) {
+int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerDeviceId,
+                        u16 TimerIntrId) {
   int Status;
   int LastTimerExpired = 0;
 
@@ -115,7 +116,8 @@ int ScuTimerIntrExample(
       break;
     }
   }
-  TimerDisableIntrSystem(IntcInstancePtr, TimerIntrId);
+  scugic_dist_clear_enable(TimerIntrId);
+  // TimerDisableIntrSystem(IntcInstancePtr, TimerIntrId);
 
   return XST_SUCCESS;
 }
@@ -134,13 +136,15 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
     return XST_FAILURE;
   }
 
+  // xil_printf("IntcConfig->CpuBaseAddress: %p\r\n",
+  // IntcConfig->CpuBaseAddress);
   Status = XScuGic_CfgInitialize(IntcInstancePtr, IntcConfig,
                                  IntcConfig->CpuBaseAddress);
   if (Status != XST_SUCCESS) {
     return XST_FAILURE;
   }
 
-  Xil_ExceptionInit();
+  // Xil_ExceptionInit();
 
   /*
    * Connect the interrupt controller interrupt handler to the hardware
@@ -155,9 +159,6 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
    * interrupt for the device occurs, the handler defined above performs
    * the specific interrupt processing for the device.
    */
-  // Status = XScuGic_Connect(IntcInstancePtr, TimerIntrId,
-  //                          (Xil_ExceptionHandler)TimerIntrHandler,
-  //                          (void *)TimerInstancePtr);
   Status = XScuGic_Connect(IntcInstancePtr, TimerIntrId,
                            (Xil_ExceptionHandler)TimerIntrHandler, 0);
   if (Status != XST_SUCCESS) {
@@ -166,7 +167,12 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
   /*
    * Enable the interrupt for the device.
    */
-  XScuGic_Enable(IntcInstancePtr, 29);
+  // xil_printf("IntcConfig->DistBaseAddress: %p\r\n",
+  //            IntcConfig->DistBaseAddress);
+  uint32_t Int_Id = 29;
+  // XScuGic_Enable(IntcInstancePtr, 29);
+  scugic_dist_set_enable(Int_Id);
+  // // XScuGic_DistWriteReg(basraddr, offset, data);
   // XScuGic_Enable(IntcInstancePtr, TimerIntrId);
 
   /*
@@ -178,7 +184,6 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
    * Enable interrupts in the Processor.
    */
   Xil_ExceptionEnable();
-
   return XST_SUCCESS;
 }
 
@@ -205,9 +210,10 @@ static void TimerIntrHandler(void *CallBackRef) {
  * @note		None.
  *
  ******************************************************************************/
-static void TimerDisableIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
-  /*
-   * Disconnect and disable the interrupt for the Timer.
-   */
-  XScuGic_Disconnect(IntcInstancePtr, TimerIntrId);
-}
+// static void TimerDisableIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId)
+// {
+//   /*
+//    * Disconnect and disable the interrupt for the Timer.
+//    */
+//   scugic_dist_clear_enable(TimerIntrId);
+// }
