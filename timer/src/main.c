@@ -44,11 +44,12 @@
  *   ps7_uart    115200 (configured by bootrom/bsp)
  */
 
-#include "../../timer_bsp/ps7_cortexa9_0/include/sleep.h"
-#include "../../timer_bsp/ps7_cortexa9_0/include/xil_exception.h"
+// #include "../../timer_bsp/ps7_cortexa9_0/include/sleep.h"
+// #include "../../timer_bsp/ps7_cortexa9_0/include/xil_exception.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xil_printf.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xparameters.h"
 #include "../../timer_bsp/ps7_cortexa9_0/include/xscugic.h"
+#include "intrupt.h"
 #include "timer.h"
 
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID
@@ -183,7 +184,8 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
   /*
    * Enable interrupts in the Processor.
    */
-  Xil_ExceptionEnable();
+  enable_intrupt();
+  // Xil_ExceptionEnable();
   return XST_SUCCESS;
 }
 

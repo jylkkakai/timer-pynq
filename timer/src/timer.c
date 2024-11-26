@@ -48,13 +48,13 @@ void scugic_dist_clear_enable(uint32_t interrupt_id) {
   // Distributor register. Clear-Enable. (ARM Cortex Technical Reference Manual)
   uint32_t *addr = (uint32_t *)(XPAR_PS7_INTC_DIST_0_S_AXI_BASEADDR +
                                 XSCUGIC_DISABLE_OFFSET);
-  xil_printf("set-enable: %d\r\n",
-             *((uint32_t *)XPAR_PS7_INTC_DIST_0_S_AXI_BASEADDR +
-               XSCUGIC_ENABLE_SET_OFFSET) &&
-                 (0x1U << interrupt_id));
+  // xil_printf("set-enable: %d\r\n",
+  //            *((uint32_t *)XPAR_PS7_INTC_DIST_0_S_AXI_BASEADDR +
+  //              XSCUGIC_ENABLE_SET_OFFSET) &&
+  //                (0x1U << interrupt_id));
   *addr = 0x1U << interrupt_id;
-  xil_printf("set-enable: %d\r\n",
-             *((uint32_t *)XPAR_PS7_INTC_DIST_0_S_AXI_BASEADDR +
-               XSCUGIC_ENABLE_SET_OFFSET) &&
-                 (0x1U << interrupt_id));
+  // xil_printf("set-enable: %d\r\n",
+  //            *((uint32_t *)XPAR_PS7_INTC_DIST_0_S_AXI_BASEADDR +
+  //              XSCUGIC_ENABLE_SET_OFFSET) &&
+  //                (0x1U << interrupt_id));
 }

@@ -14,10 +14,12 @@ LIBS := -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
 OBJS += \
 ./build/main.o \
 ./build/timer.o \
+./build/intrupt.o \
 
 C_DEPS += \
 ./build/main.d \
 ./build/timer.d \
+./build/intrupt.d \
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
