@@ -54,12 +54,11 @@
 
 #define TIMER_DEVICE_ID XPAR_XSCUTIMER_0_DEVICE_ID
 #define INTC_DEVICE_ID XPAR_SCUGIC_SINGLE_DEVICE_ID
-#define TIMER_IRPT_INTR XPAR_SCUTIMER_INTR
+#define TIMER_IRPT_INTR 29U
 
 #define TIMER_LOAD_VALUE 0xFFFFFFF
 
-int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerDeviceId,
-                        u16 TimerIntrId);
+int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerIntrId);
 
 static void TimerIntrHandler(void *CallBackRef);
 
@@ -79,7 +78,7 @@ int main(void) {
 
   xil_printf("SCU Timer Interrupt Example Test \r\n");
 
-  Status = ScuTimerIntrExample(&IntcInstance, TIMER_DEVICE_ID, TIMER_IRPT_INTR);
+  Status = ScuTimerIntrExample(&IntcInstance, TIMER_IRPT_INTR);
   if (Status != XST_SUCCESS) {
     xil_printf("SCU Timer Interrupt Example Test Failed\r\n");
     return XST_FAILURE;
@@ -89,8 +88,7 @@ int main(void) {
   return XST_SUCCESS;
 }
 
-int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerDeviceId,
-                        u16 TimerIntrId) {
+int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
   int Status;
   int LastTimerExpired = 0;
 
@@ -120,31 +118,65 @@ int ScuTimerIntrExample(XScuGic *IntcInstancePtr, u16 TimerDeviceId,
   scugic_dist_clear_enable(TimerIntrId);
   // TimerDisableIntrSystem(IntcInstancePtr, TimerIntrId);
 
-  return XST_SUCCESS;
+  return 0;
 }
 
+extern XScuGic_Config XScuGic_ConfigTable[XPAR_SCUGIC_NUM_INSTANCES];
 static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
-  int Status;
 
   XScuGic_Config *IntcConfig;
 
+  uint32_t Int_Id = 29;
   /*
    * Initialize the interrupt controller driver so that it is ready to
    * use.
    */
-  IntcConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
+  // IntcConfig = XScuGic_LookupConfig(INTC_DEVICE_ID);
+  IntcConfig = &XScuGic_ConfigTable[0];
   if (NULL == IntcConfig) {
     return XST_FAILURE;
   }
 
+  // XScuGic_VectorTableEntry HandlerTable[XSCUGIC_MAX_NUM_INTR_INPUTS];
   // xil_printf("IntcConfig->CpuBaseAddress: %p\r\n",
-  // IntcConfig->CpuBaseAddress);
-  Status = XScuGic_CfgInitialize(IntcInstancePtr, IntcConfig,
-                                 IntcConfig->CpuBaseAddress);
-  if (Status != XST_SUCCESS) {
-    return XST_FAILURE;
-  }
 
+#if 1
+  IntcInstancePtr->IsReady = 0U;
+  IntcInstancePtr->Config = IntcConfig;
+
+  IntcInstancePtr->Config->HandlerTable[Int_Id].CallBackRef = IntcInstancePtr;
+
+  // xil_printf("DistBaseAddress: %p\r\n",
+  //            IntcInstancePtr->Config->DistBaseAddress);
+  xil_printf("CpuBaseAddress: %p\r\n", IntcInstancePtr->Config->CpuBaseAddress);
+
+  // XScuGic_Stop(IntcInstancePtr);
+  // DistributorInit(IntcInstancePtr, 1); // IntcConfig->CpuBaseAddress);
+  // XScuGic_DistWriteReg(IntcInstancePtr, XSCUGIC_DIST_EN_OFFSET, 0U)C;
+
+  // scugic_dist_reg_enable(void);
+  // XScuGic_DistWriteReg(IntcInstancePtr, XSCUGIC_DIST_EN_OFFSET,
+  //                      XSCUGIC_EN_INT_MASK);
+  // u32 RegValue;
+  // RegValue = XScuGic_DistReadReg(IntcInstancePtr, XSCUGIC_DIST_EN_OFFSET);
+  // if ((RegValue & XSCUGIC_EN_INT_MASK) == 0U) {
+  //   xil_printf("reg_value: %d\r\n", (RegValue & XSCUGIC_EN_INT_MASK));
+  //   // DoDistributorInit(InstancePtr, CpuID);
+  //   return 1;
+  // }
+
+  // CPUInitialize(IntcInstancePtr);
+  // XScuGic_CPUWriteReg(IntcInstancePtr, XSCUGIC_CPU_PRIOR_OFFSET, 0xF0U);
+  // XScuGic_CPUWriteReg(IntcInstancePtr, XSCUGIC_CONTROL_OFFSET, 0x07U);
+  //
+  // InstancePtr->IsReady = XIL_COMPONENT_IS_READY;
+#else
+  // Status = XScuGic_CfgInitialize(IntcInstancePtr, IntcConfig, 0);
+  // if (Status != XST_SUCCESS) {
+  //   return XST_FAILURE;
+  // }
+
+#endif
   // Xil_ExceptionInit();
 
   /*
@@ -154,23 +186,29 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
   Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_IRQ_INT,
                                (Xil_ExceptionHandler)XScuGic_InterruptHandler,
                                IntcInstancePtr);
-
+  // Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_IRQ_INT,
+  //                              (Xil_ExceptionHandler)TimerIntrHandler,
+  //                              IntcInstancePtr);
+  // Xil_ExceptionRegisterHandler(5, (Xil_ExceptionHandler)TimerIntrHandler,
+  // NULL);
   /*
    * Connect the device driver handler that will be called when an
    * interrupt for the device occurs, the handler defined above performs
    * the specific interrupt processing for the device.
    */
-  Status = XScuGic_Connect(IntcInstancePtr, TimerIntrId,
-                           (Xil_ExceptionHandler)TimerIntrHandler, 0);
-  if (Status != XST_SUCCESS) {
-    return Status;
-  }
+  // Status = XScuGic_Connect(IntcInstancePtr, TimerIntrId,
+  //                          (Xil_ExceptionHandler)TimerIntrHandler, 0);
+  // if (Status != XST_SUCCESS) {
+  //   return Status;
+  // }
+  IntcInstancePtr->Config->HandlerTable[TimerIntrId].Handler =
+      (Xil_ExceptionHandler)TimerIntrHandler;
+  IntcInstancePtr->Config->HandlerTable[TimerIntrId].CallBackRef = 0;
   /*
    * Enable the interrupt for the device.
    */
   // xil_printf("IntcConfig->DistBaseAddress: %p\r\n",
   //            IntcConfig->DistBaseAddress);
-  uint32_t Int_Id = 29;
   // XScuGic_Enable(IntcInstancePtr, 29);
   scugic_dist_set_enable(Int_Id);
   // // XScuGic_DistWriteReg(basraddr, offset, data);
@@ -185,7 +223,6 @@ static int TimerSetupIntrSystem(XScuGic *IntcInstancePtr, u16 TimerIntrId) {
    * Enable interrupts in the Processor.
    */
   enable_intrupt();
-  // Xil_ExceptionEnable();
   return XST_SUCCESS;
 }
 

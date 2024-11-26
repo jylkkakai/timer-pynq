@@ -35,6 +35,18 @@ void scutmr_set_enable_interrupt(uint32_t val) {
     *addr &= ~XSCUTIMER_CONTROL_IRQ_ENABLE_MASK;
 }
 
+void scugic_dist_reg_set_enable(uint8_t val) {
+
+  // Enable distributor register
+  uint32_t *addr = (uint32_t *)(SCUGIC_DIST_BASEADDR + XSCUGIC_DIST_EN_OFFSET);
+  if (val)
+    *addr = XSCUGIC_EN_INT_MASK;
+  else
+    *addr = 0;
+  // XScuGic_DistWriteReg(IntcInstancePtr, XSCUGIC_DIST_EN_OFFSET,
+  //                      XSCUGIC_EN_INT_MASK);U << interrupt_id;
+}
+
 void scugic_dist_set_enable(uint32_t interrupt_id) {
 
   // Distributor register. Set-Enable. (ARM Cortex Technical Reference Manual)
